@@ -1,9 +1,6 @@
 package com.recruitersaas.controller;
 
-import com.recruitersaas.dto.request.PlanRequest;
-import com.recruitersaas.dto.request.RegisterRecruiterRequest;
-import com.recruitersaas.dto.request.SubscriptionUpdateRequest;
-import com.recruitersaas.dto.request.UpdateRecruiterRequest;
+import com.recruitersaas.dto.request.*;
 import com.recruitersaas.dto.response.*;
 import com.recruitersaas.model.enums.ApplicationStatus;
 import com.recruitersaas.model.enums.JobOfferStatus;
@@ -29,6 +26,41 @@ public class AdminController {
     private final DashboardService dashboardService;
     private final JobOfferService jobOfferService;
     private final JobApplicationService jobApplicationService;
+    private final AdminUserService adminUserService;
+
+    // ==================== ADMINS ====================
+
+    @GetMapping("/admins")
+    public ResponseEntity<PageResponse<AdminUserResponse>> getAllAdmins(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(adminUserService.getAllAdmins(page, size));
+    }
+
+    @PostMapping("/admins")
+    public ResponseEntity<AdminUserResponse> createAdmin(
+            @Valid @RequestBody CreateAdminRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(adminUserService.createAdmin(request));
+    }
+
+    @PutMapping("/admins/{id}")
+    public ResponseEntity<AdminUserResponse> updateAdmin(
+            @PathVariable String id,
+            @Valid @RequestBody UpdateAdminRequest request) {
+        return ResponseEntity.ok(adminUserService.updateAdmin(id, request));
+    }
+
+    @PatchMapping("/admins/{id}/toggle")
+    public ResponseEntity<Void> toggleAdmin(@PathVariable String id) {
+        adminUserService.toggleAdmin(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/admins/{id}")
+    public ResponseEntity<Void> deleteAdmin(@PathVariable String id) {
+        adminUserService.deleteAdmin(id);
+        return ResponseEntity.noContent().build();
+    }
 
     // ==================== DASHBOARD ====================
 

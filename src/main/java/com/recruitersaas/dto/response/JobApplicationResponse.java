@@ -21,6 +21,8 @@ public class JobApplicationResponse {
     private String recruiterNotes;
     private ApplicationStatus status;
     private Integer rating;
+    private Double aiScore;
+    private String aiScoreSummary;
     private List<ApplicationFileResponse> files;
     private LocalDateTime submittedAt;
     private LocalDateTime updatedAt;

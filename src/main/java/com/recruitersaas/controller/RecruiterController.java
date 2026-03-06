@@ -101,6 +101,14 @@ public class RecruiterController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/job-offers/{id}/unarchive")
+    public ResponseEntity<Void> unarchiveJobOffer(
+            @PathVariable String id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        jobOfferService.unarchiveJobOffer(id, userDetails.getUsername());
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/job-offers/{id}")
     public ResponseEntity<Void> deleteJobOffer(
             @PathVariable String id,
@@ -116,8 +124,13 @@ public class RecruiterController {
             @PathVariable String offerId,
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(required = false) ApplicationStatus status,
+            @RequestParam(defaultValue = "date") String sortBy,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
+        if ("score".equalsIgnoreCase(sortBy)) {
+            return ResponseEntity.ok(jobApplicationService.getApplicationsByJobOfferSortedByScore(
+                    offerId, status, page, size, userDetails.getUsername()));
+        }
         return ResponseEntity.ok(jobApplicationService.getApplicationsByJobOffer(
                 offerId, status, page, size, userDetails.getUsername()));
     }
@@ -126,8 +139,13 @@ public class RecruiterController {
     public ResponseEntity<PageResponse<JobApplicationResponse>> getAllMyApplications(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(required = false) ApplicationStatus status,
+            @RequestParam(defaultValue = "date") String sortBy,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
+        if ("score".equalsIgnoreCase(sortBy)) {
+            return ResponseEntity.ok(jobApplicationService.getAllRecruiterApplicationsSortedByScore(
+                    userDetails.getUsername(), status, page, size));
+        }
         return ResponseEntity.ok(jobApplicationService.getAllRecruiterApplications(
                 userDetails.getUsername(), status, page, size));
     }
@@ -145,6 +163,14 @@ public class RecruiterController {
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody ApplicationStatusUpdateRequest request) {
         return ResponseEntity.ok(jobApplicationService.updateApplicationStatus(id, request, userDetails.getUsername()));
+    }
+
+    @PostMapping("/applications/{id}/score")
+    public ResponseEntity<Void> triggerScoring(
+            @PathVariable String id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        jobApplicationService.triggerScoring(id, userDetails.getUsername());
+        return ResponseEntity.accepted().build();
     }
 
     @DeleteMapping("/applications/{id}")

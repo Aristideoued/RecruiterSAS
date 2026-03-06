@@ -101,6 +101,14 @@ public class JobOfferServiceImpl implements JobOfferService {
     }
 
     @Override
+    public void unarchiveJobOffer(String id, String recruiterEmail) {
+        JobOffer offer = findById(id);
+        assertOwnership(offer, recruiterEmail);
+        offer.setStatus(JobOfferStatus.DRAFT);
+        jobOfferRepository.save(offer);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public PageResponse<JobOfferResponse> getRecruiterJobOffers(String recruiterEmail, JobOfferStatus status, int page, int size) {
         RecruiterProfile profile = getProfileByEmail(recruiterEmail);

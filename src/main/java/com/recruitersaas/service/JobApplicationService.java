@@ -24,4 +24,10 @@ public interface JobApplicationService {
     PageResponse<JobApplicationResponse> getAllRecruiterApplications(String recruiterEmail, ApplicationStatus status, int page, int size);
 
     PageResponse<JobApplicationResponse> getAllApplications(int page, int size);
+
+    PageResponse<JobApplicationResponse> getApplicationsByJobOfferSortedByScore(String jobOfferId, ApplicationStatus status, int page, int size, String recruiterEmail);
+
+    PageResponse<JobApplicationResponse> getAllRecruiterApplicationsSortedByScore(String recruiterEmail, ApplicationStatus status, int page, int size);
+
+    void triggerScoring(String applicationId, String recruiterEmail);
 }

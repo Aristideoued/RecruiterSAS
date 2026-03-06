@@ -18,6 +18,8 @@ public interface JobApplicationMapper {
     @Mapping(target = "recruiterNotes", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "rating", ignore = true)
+    @Mapping(target = "aiScore", ignore = true)
+    @Mapping(target = "aiScoreSummary", ignore = true)
     @Mapping(target = "files", ignore = true)
     @Mapping(target = "submittedAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)

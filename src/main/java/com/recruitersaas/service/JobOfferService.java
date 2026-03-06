@@ -21,6 +21,8 @@ public interface JobOfferService {
 
     void archiveJobOffer(String id, String recruiterEmail);
 
+    void unarchiveJobOffer(String id, String recruiterEmail);
+
     PageResponse<JobOfferResponse> getRecruiterJobOffers(String recruiterEmail, JobOfferStatus status, int page, int size);
 
     PageResponse<JobOfferResponse> getPublicJobOffers(String recruiterSlug, int page, int size);

@@ -50,6 +50,12 @@ public class JobApplication {
 
     private Integer rating; // 1 à 5
 
+    @Column(name = "ai_score")
+    private Double aiScore; // 0 à 100, calculé automatiquement par IA
+
+    @Column(name = "ai_score_summary", columnDefinition = "TEXT")
+    private String aiScoreSummary; // Résumé de l'analyse IA
+
     @OneToMany(mappedBy = "jobApplication", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<ApplicationFile> files = new ArrayList<>();

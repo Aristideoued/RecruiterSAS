@@ -16,6 +16,7 @@ import com.recruitersaas.model.enums.JobOfferStatus;
 import com.recruitersaas.repository.JobApplicationRepository;
 import com.recruitersaas.repository.JobOfferRepository;
 import com.recruitersaas.repository.RecruiterProfileRepository;
+import com.recruitersaas.service.AiScoringService;
 import com.recruitersaas.service.EmailService;
 import com.recruitersaas.service.FileStorageService;
 import com.recruitersaas.service.JobApplicationService;
@@ -41,6 +42,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
     private final JobApplicationMapper jobApplicationMapper;
     private final FileStorageService fileStorageService;
     private final EmailService emailService;
+    private final AiScoringService aiScoringService;
 
     @Override
     public JobApplicationResponse submitApplication(String jobOfferId, JobApplicationRequest request, List<MultipartFile> files) {
@@ -71,6 +73,9 @@ public class JobApplicationServiceImpl implements JobApplicationService {
 
         // Recharger avec les fichiers
         JobApplication saved = jobApplicationRepository.findById(application.getId()).get();
+
+        // Scoring IA asynchrone (non bloquant)
+        aiScoringService.scoreApplicationAsync(saved, jobOffer);
 
         // Extraire les données dans la transaction (avant @Async qui ferme la session)
         String recruiterEmail = jobOffer.getRecruiterProfile().getUser().getEmail();
@@ -161,6 +166,45 @@ public class JobApplicationServiceImpl implements JobApplicationService {
     public PageResponse<JobApplicationResponse> getAllApplications(int page, int size) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by("submittedAt").descending());
         return PageResponse.from(jobApplicationRepository.findAll(pageable).map(jobApplicationMapper::toResponse));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<JobApplicationResponse> getApplicationsByJobOfferSortedByScore(
+            String jobOfferId, ApplicationStatus status, int page, int size, String recruiterEmail) {
+
+        JobOffer jobOffer = jobOfferRepository.findById(jobOfferId)
+                .orElseThrow(() -> new ResourceNotFoundException("Offre introuvable: " + jobOfferId));
+        assertRecruiterOwnsOffer(jobOffer, recruiterEmail);
+
+        PageRequest pageable = PageRequest.of(page, size);
+        Page<JobApplication> applications = status != null
+                ? jobApplicationRepository.findAllByJobOfferIdAndStatusSortedByScore(jobOfferId, status, pageable)
+                : jobApplicationRepository.findAllByJobOfferIdSortedByScore(jobOfferId, pageable);
+
+        return PageResponse.from(applications.map(jobApplicationMapper::toResponse));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<JobApplicationResponse> getAllRecruiterApplicationsSortedByScore(
+            String recruiterEmail, ApplicationStatus status, int page, int size) {
+
+        RecruiterProfile profile = getProfileByEmail(recruiterEmail);
+        PageRequest pageable = PageRequest.of(page, size);
+
+        Page<JobApplication> applications = status != null
+                ? jobApplicationRepository.findAllByRecruiterProfileIdAndStatusSortedByScore(profile.getId(), status, pageable)
+                : jobApplicationRepository.findAllByRecruiterProfileIdSortedByScore(profile.getId(), pageable);
+
+        return PageResponse.from(applications.map(jobApplicationMapper::toResponse));
+    }
+
+    @Override
+    public void triggerScoring(String applicationId, String recruiterEmail) {
+        JobApplication application = findById(applicationId);
+        assertRecruiterOwnsApplication(application, recruiterEmail);
+        aiScoringService.scoreApplicationAsync(application, application.getJobOffer());
     }
 
     // --- Helpers ---

@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/recruitersaasdb
-    username: postgres
-    password: "2885351"
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -21,10 +21,10 @@ spring:
       max-request-size: 30MB
 
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: jofealert@gmail.com
-    password: ghzuntliehgevkoh
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
     properties:
       mail:
         smtp:
@@ -35,15 +35,18 @@ spring:
 
 app:
   jwt:
-    secret: 5367566B59703373367639792F423F4428472B4B6250645367566B5970337336
-    expiration: 86400000
-    refresh-expiration: 604800000
+    secret: ${JWT_SECRET}
+    expiration: ${JWT_EXPIRATION:86400000}
+    refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
   file-storage:
-    upload-dir: ./uploads
-  frontend-url: http://localhost:4200
+    upload-dir: ${FILE_UPLOAD_DIR:./uploads}
+  frontend-url: ${FRONTEND_URL:http://localhost:4200}
+  ai:
+    api-key: ${ANTHROPIC_API_KEY:}
+    model: ${AI_MODEL:claude-sonnet-4-6}
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 logging:
   level:
